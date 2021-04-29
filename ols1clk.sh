@@ -338,10 +338,9 @@ function install_ols_centos
     echoB "${FPACE} - $1 OpenLiteSpeed"
     silent yum -y $action openlitespeed
     #Sometimes it may fail and do a reinstall to fix
-    if [ ! -e "${WEBCF}" ] ; then
-        silent yum -y reinstall openlitespeed
-    fi
-
+    #if [ ! -e "${WEBCF}" ] ; then
+    #    silent yum -y reinstall openlitespeed
+    #fi
     if [ ! -e $SERVER_ROOT/lsphp$LSPHPVER/bin/lsphp ] ; then
         action=install
     fi
@@ -381,29 +380,23 @@ function uninstall_ols_centos
 
 function uninstall_php_centos
 {
-    silent yum list installed | grep lsphp | grep process >/dev/null 2>&1
+    ls "${SERVER_ROOT}" | grep lsphp >/dev/null
     if [ $? = 0 ] ; then
-        local LSPHPSTR=`yum list installed | grep lsphp | grep process`
-        LSPHPVER=`echo $LSPHPSTR | awk '{print substr($0,6,2)}'`
-        echoY "The installed LSPHP version is $LSPHPVER"
-
-        local JSON=
-        if [ "x$LSPHPVER" = "x70" ] || [ "x$LSPHPVER" = "x71" ] || [ "x$LSPHPVER" = "x72" ] || [ "x$LSPHPVER" = "x73" ] || [ "x$LSPHPVER" = "x74" ]; then
-            JSON=lsphp$LSPHPVER-json
-        fi
-        if [ "x$LSPHPVER" = "x80" ]; then
-            silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
-            lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml  lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap lsphp*
-
-        else
-            silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
-            lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml lsphp$LSPHPVER-mcrypt lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap $JSON lsphp*
-        fi    
-        if [ $? != 0 ] ; then
-            echoR "An error occured while uninstalling lsphp$LSPHPVER"
-            ALLERRORS=1
-        fi
-
+        local LSPHPSTR="$(ls ${SERVER_ROOT} | grep -i lsphp | tr '\n' ' ')"
+        for LSPHPVER in ${LSPHPSTR}; do 
+            echoY "Detect LSPHP version $LSPHPVER"
+            if [ "$LSPHPVER" = "lsphp80" ]; then
+                silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+                lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml  lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap lsphp*
+            else
+                silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+                lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml lsphp$LSPHPVER-mcrypt lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap $JSON lsphp*
+            fi                
+            if [ $? != 0 ] ; then
+                echoR "An error occured while uninstalling lsphp$LSPHPVER"
+                ALLERRORS=1
+            fi
+        done 
     else
         yum -y remove lsphp*
         echoR "Uninstallation cannot get the currently installed LSPHP version."
@@ -471,7 +464,7 @@ function uninstall_ols_debian
 {
     echoG 'Start Uninstall OpenLiteSpeed'
     silent ${APT} -y purge openlitespeed
-    mv /var/lib/dpkg/info/ /var/lib/dpkg/info_old/
+    rm -rf /var/lib/dpkg/info/
     mkdir /var/lib/dpkg/info/
     rm -rf $SERVER_ROOT/
     echoG 'End Uninstall OpenLiteSpeed'
@@ -559,7 +552,8 @@ function create_wordpress_cf
         --dbuser=$USERNAME \
         --dbpass=$USERPASSWORD \
         --locale=ro_RO \
-        --allow-root
+        --allow-root \
+        --quiet
     echoG 'Done Create Wordpress config'
 }
 
@@ -1145,6 +1139,8 @@ rewrite  {
 
 END
             chown -R lsadm:lsadm $SERVER_ROOT/conf/
+        else 
+            echoY "${FPACE} - Detect wordpress exist, will skip virtual host conf setup!"
         fi
     else
         echoR "${WEBCF} is missing. It appears that something went wrong during OpenLiteSpeed installation."
