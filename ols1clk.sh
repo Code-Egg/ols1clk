@@ -462,9 +462,7 @@ function uninstall_ols_debian
     silent ${APT} -y purge openlitespeed
     silent ${APT} -y remove openlitespeed
     ${APT} clean
-    rm -rf /var/lib/dpkg/info/
-    mkdir /var/lib/dpkg/info/ 
-    rm -rf $SERVER_ROOT/
+    #rm -rf $SERVER_ROOT/
 }
 
 function uninstall_php_debian
