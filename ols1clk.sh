@@ -66,6 +66,7 @@ CERT=example.crt
 EPACE='        '
 FPACE='    '
 APT='apt-get -qq'
+YUM='yum -q'
 MYGITHUBURL=https://raw.githubusercontent.com/litespeedtech/ols1clk/master/ols1clk.sh
 
 function echoY
@@ -146,7 +147,7 @@ function check_wget
     which wget  >/dev/null 2>&1
     if [ $? != 0 ] ; then
         if [ "$OSNAME" = "centos" ] ; then
-            silent yum -y install wget
+            silent ${YUM} -y install wget
         else
             ${APT} -y install wget
         fi
@@ -309,14 +310,12 @@ function check_os
     fi
 }
 
-
 function update_centos_hashlib
 {
     if [ "$OSNAME" = 'centos' ] ; then
-        silent yum -y install python-hashlib
+        silent ${YUM} -y install python-hashlib
     fi
 }
-
 
 function install_ols_centos
 {
@@ -332,29 +331,24 @@ function install_ols_centos
         JSON=lsphp$LSPHPVER-json
     fi
     echoB "${FPACE} - add epel repo"
-    silent yum -y $action epel-release
+    silent ${YUM} -y $action epel-release
     echoB "${FPACE} - add litespeedtech repo"
     rpm -Uvh http://rpms.litespeedtech.com/centos/litespeed-repo-1.1-1.el$OSVER.noarch.rpm >/dev/null 2>&1
     echoB "${FPACE} - $1 OpenLiteSpeed"
-    silent yum -y $action openlitespeed
-    #Sometimes it may fail and do a reinstall to fix
-    #if [ ! -e "${WEBCF}" ] ; then
-    #    silent yum -y reinstall openlitespeed
-    #fi
+    silent ${YUM} -y $action openlitespeed
     if [ ! -e $SERVER_ROOT/lsphp$LSPHPVER/bin/lsphp ] ; then
         action=install
     fi
     echoB "${FPACE} - $1 lsphp$LSPHPVER"
-    #special case for lsphp-mysql
     if [ "$action" = "reinstall" ] ; then
-        silent yum -y remove lsphp$LSPHPVER-mysqlnd
+        silent ${YUM} -y remove lsphp$LSPHPVER-mysqlnd
     fi
-    silent yum -y install lsphp$LSPHPVER-mysqlnd
+    silent ${YUM} -y install lsphp$LSPHPVER-mysqlnd
     if [ "$LSPHPVER" = "80" ]; then 
-        silent yum -y $action lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+        silent ${YUM} -y $action lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
         lsphp$LSPHPVER-xml lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap
     else
-        silent yum -y $action lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+        silent ${YUM} -y $action lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
         lsphp$LSPHPVER-xml lsphp$LSPHPVER-mcrypt lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap $JSON
     fi
     echoB "${FPACE} - Setup lsphp symlink"
@@ -370,7 +364,8 @@ function install_ols_centos
 
 function uninstall_ols_centos
 {
-    silent yum -y remove openlitespeed
+    echoB "${FPACE} - Remove OpenLiteSpeed"
+    silent ${YUM} -y remove openlitespeed
     if [ $? != 0 ] ; then
         echoR "An error occured while uninstalling OpenLiteSpeed."
         ALLERRORS=1
@@ -384,12 +379,12 @@ function uninstall_php_centos
     if [ $? = 0 ] ; then
         local LSPHPSTR="$(ls ${SERVER_ROOT} | grep -i lsphp | tr '\n' ' ')"
         for LSPHPVER in ${LSPHPSTR}; do 
-            echoY "Detect LSPHP version $LSPHPVER"
+            echoB "${FPACE} - Detect LSPHP version $LSPHPVER"
             if [ "$LSPHPVER" = "lsphp80" ]; then
-                silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+                silent ${YUM} -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
                 lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml  lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap lsphp*
             else
-                silent yum -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
+                silent ${YUM} -y remove lsphp$LSPHPVER lsphp$LSPHPVER-common lsphp$LSPHPVER-gd lsphp$LSPHPVER-process lsphp$LSPHPVER-mbstring \
                 lsphp$LSPHPVER-mysqlnd lsphp$LSPHPVER-xml lsphp$LSPHPVER-mcrypt lsphp$LSPHPVER-pdo lsphp$LSPHPVER-imap $JSON lsphp*
             fi                
             if [ $? != 0 ] ; then
@@ -398,7 +393,8 @@ function uninstall_php_centos
             fi
         done 
     else
-        yum -y remove lsphp*
+        echoB "${FPACE} - Uinstall LSPHP"
+        ${YUM} -y remove lsphp*
         echoR "Uninstallation cannot get the currently installed LSPHP version."
         echoY "May not uninstall LSPHP correctly."
         LSPHPVER=
@@ -451,49 +447,30 @@ function install_ols_debian
         ALLERRORS=1
     fi
     echoB "${FPACE} - Setup lsphp symlink"
-    if [ ${INSTALL_STATUS} = 0 ]; then 
+    #if [ ${INSTALL_STATUS} = 0 ]; then 
+    if [ -e $SERVER_ROOT/bin/openlitespeed ]; then 
         ln -sf $SERVER_ROOT/lsphp$LSPHPVER/bin/lsphp $SERVER_ROOT/fcgi-bin/lsphpnew
         sed -i -e "s/fcgi-bin\/lsphp/fcgi-bin\/lsphpnew/g" "${WEBCF}"    
-        #fix lsphp 73 to current version
-        sed -i -e "s/lsphp73\/bin\/lsphp/lsphp$LSPHPVER\/bin\/lsphp/g" "${WEBCF}"
+        sed -i -e "s/lsphp${WEBADMIN_LSPHPVER}\/bin\/lsphp/lsphp$LSPHPVER\/bin\/lsphp/g" "${WEBCF}"
     fi
 }
 
 
 function uninstall_ols_debian
 {
-    echoG 'Start Uninstall OpenLiteSpeed'
+    echoB "${FPACE} - Uninstall OpenLiteSpeed"
     silent ${APT} -y purge openlitespeed
+    silent ${APT} -y remove openlitespeed
+    ${APT} clean
     rm -rf /var/lib/dpkg/info/
-    mkdir /var/lib/dpkg/info/
+    mkdir /var/lib/dpkg/info/ 
     rm -rf $SERVER_ROOT/
-    echoG 'End Uninstall OpenLiteSpeed'
 }
 
 function uninstall_php_debian
 {
-    ls "${SERVER_ROOT}" | grep lsphp >/dev/null
-    if [ $? = 0 ] ; then
-        local LSPHPSTR="$(ls ${SERVER_ROOT} | grep -i lsphp | tr '\n' ' ')"
-        for LSPHPVER in ${LSPHPSTR}; do 
-            echoY "Detect LSPHP version $LSPHPVER"
-            if [ "$LSPHPVER" = "lsphp56" ]; then
-                silent ${APT} -y --purge remove $LSPHPVER-gd $LSPHPVER-mcrypt           
-            else
-                silent ${APT} -y --purge remove $LSPHPVER-common
-            fi
-            silent ${APT} -y --purge remove $LSPHPVER $LSPHPVER-mysql $LSPHPVER-imap 'lsphp*'
-            if [ $? != 0 ] ; then
-                echoR "An error occured while uninstalling OpenLiteSpeed/LSPHP."
-                ALLERRORS=1
-            fi
-        done  
-    else
-        silent ${APT} -y --purge remove lsphp*
-        echoR "Uninstallation cannot get the currently installed LSPHP version."
-        echoR "May not uninstall LSPHP correctly."
-        LSPHPVER=
-    fi
+    echoB "${FPACE} - Uninstall LSPHP"
+    silent ${APT} -y --purge remove lsphp*
     if [ -e /usr/bin/php ] && [ -L /usr/bin/php ]; then 
         rm -f /usr/bin/php
     fi
@@ -534,19 +511,22 @@ function download_wordpress
         local WPBASENAME=$(basename $WORDPRESSPATH)
         mkdir -p "$WORDPRESSPATH"; 
         cd "$WORDPRESSPATH"
+    else
+        echoG "$WORDPRESSPATH exists, will use it."
+    fi
+    if [ "${WORDPRESSINSTALLED}" = '0' ];then 
         wp core download \
             --locale=$WPLANGUAGE \
             --path=$WORDPRESSPATH \
             --allow-root \
             --quiet
-    else
-        echoY "$WORDPRESSPATH exists, will use it."
-    fi
+    fi        
     echoG 'End Download WordPress file'
 }
 function create_wordpress_cf
 {
     echoG 'Start Create Wordpress config'
+    cd "$WORDPRESSPATH"
     wp config create \
         --dbname=$DATABASENAME \
         --dbuser=$USERNAME \
@@ -560,6 +540,7 @@ function create_wordpress_cf
 function install_wordpress_core
 {
     echoG 'Start Setting Core Wordpress'
+    cd "$WORDPRESSPATH"
     wp core install \
         --url=$SITEDOMAIN \
         --title=$WPTITLE \
@@ -613,7 +594,6 @@ function main_gen_password
 
 function main_set_password
 {
-
     echo "WebAdmin username is [admin], password is [$ADMINPASSWORD]." > $SERVER_ROOT/password
     set_ols_password
 }
@@ -670,13 +650,6 @@ function test_mysql_password
     fi
 }
 
-function get_sql_ver
-{
-    SQLDBVER=$(/usr/bin/mysql -V | awk '{match($0,"([^ ]+)-MariaDB",a)}END{print a[1]}')
-    SQL_MAINV=$(echo ${SQLDBVER} | awk -F '.' '{print $1}')
-    SQL_SECV=$(echo ${SQLDBVER} | awk -F '.' '{print $2}')
-}
-
 function centos_install_mysql
 {
     echoB "${FPACE} - Add MariaDB repo"
@@ -712,18 +685,18 @@ END
     fi
     echoB "${FPACE} - Install MariaDB"
     if [ "$OSNAMEVER" = "CENTOS8" ] ; then
-        silent yum install -y boost-program-options
-        silent yum --disablerepo=AppStream install -y MariaDB-server MariaDB-client
+        silent ${YUM} install -y boost-program-options
+        silent ${YUM} --disablerepo=AppStream install -y MariaDB-server MariaDB-client
     else
-        silent yum -y install MariaDB-server MariaDB-client
+        silent ${YUM} -y install MariaDB-server MariaDB-client
     fi
     if [ $? != 0 ] ; then
         echoR "An error occured during installation of MariaDB. Please fix this error and try again."
-        echoR "You may want to manually run the command 'yum -y install MariaDB-server MariaDB-client' to check. Aborting installation!"
+        echoR "You may want to manually run the command '${YUM} -y install MariaDB-server MariaDB-client' to check. Aborting installation!"
         exit 1
     fi
     echoB "${FPACE} - Start MariaDB"
-    if [ "x$OSNAMEVER" = "xCENTOS8" ] || [ "x$OSNAMEVER" = "xCENTOS7" ] ; then
+    if [ "$OSNAMEVER" = "CENTOS8" ] || [ "$OSNAMEVER" = "CENTOS7" ] ; then
         silent systemctl enable mariadb
         silent systemctl start  mariadb
     else
@@ -734,31 +707,28 @@ END
 function debian_install_mysql
 {
     echoB "${FPACE} - Install software properties"
-    if [ "x$OSNAMEVER" = "xDEBIAN7" ] ; then
+    if [ "$OSNAMEVER" = "DEBIAN7" ] ; then
         silent ${APT} -y -f install python-software-properties
         silent apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-    elif [ "x$OSNAMEVER" = "xDEBIAN8" ] ; then
+    elif [ "$OSNAMEVER" = "DEBIAN8" ] ; then
         silent ${APT} -y -f install software-properties-common
         silent apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xcbcb082a1bb943db
-    elif [ "x$OSNAMEVER" = "xDEBIAN9" ] ; then
+    elif [ "$OSNAMEVER" = "DEBIAN9" ] ; then
         silent ${APT} -y -f install software-properties-common gnupg
         silent apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xF1656F24C74CD1D8
-    elif [ "x$OSNAMEVER" = "xDEBIAN10" ] ; then
+    elif [ "$OSNAMEVER" = "DEBIAN10" ] ; then
         silent ${APT} -y -f install software-properties-common gnupg
         silent apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 0xF1656F24C74CD1D8
-    elif [ "x$OSNAMEVER" = "xUBUNTU12" ] ; then
-        silent ${APT} -y -f install python-software-properties
-        silent apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-    elif [ "x$OSNAMEVER" = "xUBUNTU14" ] ; then
+    elif [ "$OSNAMEVER" = "UBUNTU14" ] ; then
         silent ${APT} -y -f install software-properties-common
         silent apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-    elif [ "x$OSNAMEVER" = "xUBUNTU16" ] ; then
+    elif [ "$OSNAMEVER" = "UBUNTU16" ] ; then
         silent ${APT} -y -f install software-properties-common
         silent apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-    elif [ "x$OSNAMEVER" = "xUBUNTU18" ] ; then
+    elif [ "$OSNAMEVER" = "UBUNTU18" ] ; then
         silent ${APT} -y -f install software-properties-common
         silent apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-    elif [ "x$OSNAMEVER" = "xUBUNTU20" ] ; then
+    elif [ "$OSNAMEVER" = "UBUNTU20" ] ; then
         silent ${APT} -y -f install software-properties-common
         silent apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8    
     fi
@@ -797,8 +767,7 @@ function install_mysql
         echoR "Please fix this error and try again. Aborting installation!"
         exit 1
     fi
-    #get_sql_ver
-    #mysql -uroot -e "update mysql.user set plugin='' where user='root';"
+
     echoB "${FPACE} - Set MariaDB root"
     mysql -uroot -e "flush privileges;"
     mysqladmin -uroot password $ROOTPASSWORD
@@ -941,11 +910,10 @@ function purgedatabase
 
 function uninstall_result
 {
-    if [ "$ALLERRORS" = "0" ] ; then
-        echoG "Uninstallation finished."
-    else
-        echoY "Uninstallation finished - some error(s) occured. Please check these as you may need to manually fix them."
+    if [ "$ALLERRORS" != "0" ] ; then
+        echoY "Some error(s) occured. Please check these as you may need to manually fix them."
     fi
+    echoCYAN 'End OpenLiteSpeed one click Uninstallation << << << << << << <<'
 }
 
 
@@ -1195,15 +1163,16 @@ function changeOlsPassword
 function uninstall
 {
     if [ "$OLSINSTALLED" = "1" ] ; then
-        echoY "Uninstalling ..."
-        $SERVER_ROOT/bin/lswsctrl stop
+        echoB "${FPACE} - Stop OpenLiteSpeed"
+        silent $SERVER_ROOT/bin/lswsctrl stop
+        echoB "${FPACE} - Stop LSPHP"
         silent killall -9 lsphp
         if [ "$OSNAME" = "centos" ] ; then
             uninstall_php_centos
             uninstall_ols_centos
         else
             uninstall_php_debian
-            uninstall_ols_debian
+            uninstall_ols_debian 
         fi
         echoG Uninstalled.
     else
@@ -1317,8 +1286,9 @@ function uninstall_warn
             echoG "Uninstallation aborted!"
             exit 0
         fi
-        echo
+        echo 
     fi
+    echoCYAN 'Start OpenLiteSpeed one click Uninstallation >> >> >> >> >> >> >>'
 }
 
 function befor_install_display
@@ -1668,11 +1638,11 @@ while [ ! -z "${1}" ] ; do
         -v | --verbose )             
                 VERBOSE=1
                 APT='apt-get'
+                YUM='yum'
                 ;;
         -[hH] | --help )           
                 usage
                 ;;
-
         * )                     
                 usage
                 ;;
