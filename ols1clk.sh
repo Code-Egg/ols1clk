@@ -34,6 +34,7 @@ TESTGETERROR=no
 DATABASENAME=olsdbname
 USERNAME=olsdbuser
 VERBOSE=0
+PURE_DB=0
 WORDPRESSPATH=$SERVER_ROOT/wordpress
 WPPORT=80
 SSLWPPORT=443
@@ -906,6 +907,17 @@ function purgedatabase
     fi
 }
 
+function pure_mariadb
+{
+    if [ "$MYSQLINSTALLED" = "0" ] ; then
+        install_mysql
+        ROOTPASSWORD=$CURROOTPASSWORD
+        setup_mysql        
+    else
+        echoG 'MariaDB already exist, skip!'
+    fi
+}
+
 function uninstall_result
 {
     if [ "$ALLERRORS" != "0" ] ; then
@@ -1365,34 +1377,39 @@ function install_wp_cli
 
 function main_install_wordpress
 {
-    if [ "$WORDPRESSINSTALLED" = '1' ] ; then
-        echoY 'Skip WordPress installation!'
+    if [ "${PURE_DB}" = '1' ]; then 
+        echoG 'Install MariaDB only'
+        pure_mariadb
     else
-        if [ "$INSTALLWORDPRESS" = "1" ] ; then
-            install_wp_cli
-            config_vh_wp
-            check_port_usage
-            if [ "$MYSQLINSTALLED" != "1" ] ; then
-                install_mysql
-            else
-                test_mysql_password
+        if [ "$WORDPRESSINSTALLED" = '1' ] ; then
+            echoY 'Skip WordPress installation!'
+        else
+            if [ "$INSTALLWORDPRESS" = "1" ] ; then
+                install_wp_cli
+                config_vh_wp
+                check_port_usage
+                if [ "$MYSQLINSTALLED" != "1" ] ; then
+                    install_mysql
+                else
+                    test_mysql_password
+                fi
+                if [ "$TESTPASSWORDERROR" = "1" ] ; then
+                    echoY "MySQL setup bypassed, can not get root password."
+                else
+                    ROOTPASSWORD=$CURROOTPASSWORD
+                    setup_mysql
+                fi
+                download_wordpress
+                create_wordpress_cf
+                if [ "$INSTALLWORDPRESSPLUS" = "1" ] ; then            
+                    install_wordpress_core
+                fi
+                change_owner ${WORDPRESSPATH}
+                echo "WordPress administrator username is [$WPUSER], password is [$WPPASSWORD]." >> $SERVER_ROOT/password    
+                echo "mysql root password is [$ROOTPASSWORD]." >> $SERVER_ROOT/password        
             fi
-            if [ "$TESTPASSWORDERROR" = "1" ] ; then
-                echoY "MySQL setup bypassed, can not get root password."
-            else
-                ROOTPASSWORD=$CURROOTPASSWORD
-                setup_mysql
-            fi
-            download_wordpress
-            create_wordpress_cf
-            if [ "$INSTALLWORDPRESSPLUS" = "1" ] ; then            
-                install_wordpress_core
-            fi
-            change_owner ${WORDPRESSPATH}
-            echo "WordPress administrator username is [$WPUSER], password is [$WPPASSWORD]." >> $SERVER_ROOT/password    
-            echo "mysql root password is [$ROOTPASSWORD]." >> $SERVER_ROOT/password        
-        fi
-    fi 
+        fi 
+    fi    
 }
 
 function check_port_usage
@@ -1414,8 +1431,7 @@ function after_install_display
     else
         echoY "Installation finished. Some errors seem to have occured, please check this as you may need to manually fix them."
     fi
-
-    if [ "$INSTALLWORDPRESSPLUS" = "0" ] && [ "$INSTALLWORDPRESS" = "1" ] ; then
+    if [ "$INSTALLWORDPRESSPLUS" = "0" ] && [ "$INSTALLWORDPRESS" = "1" ] && [ "${PURE_DB}" = '0' ]; then
         echo "Please access http://server_IP:$WPPORT/ to finish setting up your WordPress site."
         echo "And also you may want to activate the LiteSpeed Cache plugin to get better performance."
     fi
@@ -1467,7 +1483,9 @@ function main_ols_test
 {
     echoCYAN "Start auto testing >> >> >> >>"
     test_ols_admin
-    if [ "$INSTALLWORDPRESS" = "1" ] ; then
+    if [ "${PURE_DB}" = '1' ]; then 
+        test_ols
+    elif [ "$INSTALLWORDPRESS" = "1" ] ; then
         if [ "$INSTALLWORDPRESSPLUS" = "1" ] ; then
             test_wordpress_plus
         else
@@ -1550,6 +1568,9 @@ while [ ! -z "${1}" ] ; do
                     if [ "$1" = "${MARIADBVERLIST[$i]}" ] ; then MARIADBVER=$1; fi 
                 done
                 ;;
+        --pure-mariadb )
+                PURE_DB=1
+                ;;        
         -[wW] | --wordpress )      
                 INSTALLWORDPRESS=1
                 ;;
