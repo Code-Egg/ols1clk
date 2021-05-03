@@ -18,5 +18,5 @@ jobs:
       - name: lsws1clk test
         run: |
           sudo apt remove --purge mysql*; 
-          sudo rm /etc/init.d/mysql;
+          sudo systemctl daemon-reload
           sudo bash -x ols1clk.sh -W
