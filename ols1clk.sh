@@ -143,6 +143,14 @@ function check_root
     fi
 }
 
+function update_system(){
+    if [ "$OSNAME" = "centos" ] ; then
+        silent ${YUM} update
+    else
+        ${APT} update && ${APT} upgrade -y
+    fi
+}
+
 function check_wget
 {
     which wget  >/dev/null 2>&1
@@ -1517,6 +1525,7 @@ function main_init_check
 function main_init_package
 {
     update_centos_hashlib
+    update_system
     check_wget
 }
 
