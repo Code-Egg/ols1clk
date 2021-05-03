@@ -1168,6 +1168,7 @@ function check_cur_status
     which mysqladmin  >/dev/null 2>&1
     if [ $? = 0 ] ; then
         MYSQLINSTALLED=1
+        mysqladmin version
         apt list --installed | grep -i 'mysql\|mariadb'        
     else
         MYSQLINSTALLED=0
