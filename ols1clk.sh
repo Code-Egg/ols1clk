@@ -758,7 +758,9 @@ function debian_install_mysql
         exit 1
     fi
     echoB "${FPACE} - Start MariaDB"
-    service mysql start
+    echo 'A'; service mysql status 
+    echo 'B'; systemctl status mariadb
+    echo 'C'; systemctl status mariadb-server
 }
 
 function install_mysql
