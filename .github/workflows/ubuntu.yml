@@ -16,4 +16,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: lsws1clk test
-        run: sudo bash ols1clk.sh -W
+        run: sudo -x bash ols1clk.sh -W
