@@ -769,6 +769,7 @@ function install_mysql
     else
         debian_install_mysql
     fi
+    sleep 5
     if [ $? != 0 ] ; then
         echoR "An error occured when starting the MariaDB service. "
         echoR "Please fix this error and try again. Aborting installation!"
@@ -781,6 +782,7 @@ function install_mysql
     if [ $? = 0 ] ; then
         CURROOTPASSWORD=$ROOTPASSWORD
     else
+        echo 'TEST mysqladmin -uroot -p$ROOTPASSWORD password $ROOTPASSWORD'
         #test it is the current password
         mysqladmin -uroot -p$ROOTPASSWORD password $ROOTPASSWORD
         if [ $? = 0 ] ; then
