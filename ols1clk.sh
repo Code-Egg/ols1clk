@@ -769,11 +769,11 @@ function install_mysql
     else
         debian_install_mysql
     fi
-    echo 'Sleep 5s '
-    sleep 5
+
     if [ $? != 0 ] ; then
         echoR "An error occured when starting the MariaDB service. "
         echoR "Please fix this error and try again. Aborting installation!"
+        systemctl status mariadb.service
         exit 1
     fi
 
