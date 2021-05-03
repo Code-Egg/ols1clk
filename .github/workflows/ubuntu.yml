@@ -13,10 +13,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ${{ matrix.container }}
-    strategy:
-      matrix:
-        container: ['ubuntu-18.04', 'ubuntu-20.04']
     steps:
       - uses: actions/checkout@v2
       - name: lsws1clk test
