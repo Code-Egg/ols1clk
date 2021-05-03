@@ -13,8 +13,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: 'ubuntu:20.04'
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        container: ['ubuntu:20.04']    
     steps:
       - uses: actions/checkout@v2
       - name: lsws1clk test
-        run: sudo bash ols1clk.sh -W
+        run: bash ols1clk.sh -W
