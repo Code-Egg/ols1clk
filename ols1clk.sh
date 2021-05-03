@@ -1176,6 +1176,11 @@ function check_cur_status
     which mysqladmin
     echo 'AAAA'
     mysqladmin version 
+    echo 'BBB'
+    systemctl status mysql
+    systemctl start mysql
+    echo 'BBB'
+    
     if [ $? = 0 ] ; then
         MYSQLINSTALLED=1
         mysqladmin version
