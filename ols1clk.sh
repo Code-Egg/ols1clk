@@ -779,7 +779,13 @@ function install_mysql
 
     echoB "${FPACE} - Set MariaDB root"
     mysql -uroot -e "flush privileges;"
+    echo 'Set sql root '
     mysqladmin -uroot password $ROOTPASSWORD
+
+echo 'change method'
+mysql -u root -e "ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD('${ROOTPASSWORD}');"
+
+
     if [ $? = 0 ] ; then
         echo "AAAAAAAAAAAAAAAAAAAAAAAAAACURROOTPASSWORD=$ROOTPASSWORD"
         CURROOTPASSWORD=$ROOTPASSWORD
