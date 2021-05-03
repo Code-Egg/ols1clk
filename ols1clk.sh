@@ -769,6 +769,7 @@ function install_mysql
     else
         debian_install_mysql
     fi
+    echo 'Sleep 5s '
     sleep 5
     if [ $? != 0 ] ; then
         echoR "An error occured when starting the MariaDB service. "
@@ -780,6 +781,7 @@ function install_mysql
     mysql -uroot -e "flush privileges;"
     mysqladmin -uroot password $ROOTPASSWORD
     if [ $? = 0 ] ; then
+        echo "AAAAAAAAAAAAAAAAAAAAAAAAAACURROOTPASSWORD=$ROOTPASSWORD"
         CURROOTPASSWORD=$ROOTPASSWORD
     else
         echo 'TEST mysqladmin -uroot -p$ROOTPASSWORD password $ROOTPASSWORD'
@@ -1399,8 +1401,10 @@ function main_install_wordpress
                 config_vh_wp
                 check_port_usage
                 if [ "$MYSQLINSTALLED" != "1" ] ; then
+                    echo "Install mysql A"
                     install_mysql
                 else
+                    echo "Test mysql A"
                     test_mysql_password
                 fi
                 if [ "$TESTPASSWORDERROR" = "1" ] ; then
