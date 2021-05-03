@@ -11,8 +11,9 @@ on:
       - master
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+    container: 'ubuntu-focal'
     steps:
       - uses: actions/checkout@v2
       - name: lsws1clk test
