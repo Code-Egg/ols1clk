@@ -1,0 +1,19 @@
+  
+name: ols1clk
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: lsws1clk test
+        run: sudo bash -x ols1clk.sh -W
