@@ -144,10 +144,11 @@ function check_root
 }
 
 function update_system(){
+    echoG 'System update'
     if [ "$OSNAME" = "centos" ] ; then
         silent ${YUM} update
     else
-        ${APT} update && ${APT} upgrade -y
+        silent ${APT} update && ${APT} upgrade -y
     fi
 }
 
@@ -213,17 +214,17 @@ function usage
     echoW " --mariadbver [VERSION]            " "To set MariaDB version, such as 10.5. We currently support versions '${MARIADBVERLIST[@]}'."
     echoNW "  -W,    --wordpress              " "${EPACE} To install WordPress. You will still need to complete the WordPress setup by browser"
     echoW " --wordpressplus [SITEDOMAIN]      " "To install, setup, and configure WordPress, also LSCache will be enabled"
-    echoW " --wordpresspath [WORDPRESSPATH]   " "To specify a location for the new WordPress installation or use an existing WordPress installation."
+    echoW " --wordpresspath [WP_PATH]         " "To specify a location for the new WordPress installation or an existing WordPress."
     echoNW "  -R,    --dbrootpassword [PASSWORD]  " "     To set the database root password instead of using a random one."
     echoW " --dbname [DATABASENAME]           " "To set the database name to be used by WordPress."
     echoW " --dbuser [DBUSERNAME]             " "To set the WordPress username in the database."
     echoW " --dbpassword [PASSWORD]           " "To set the WordPress table password in MySQL instead of using a random one."
-    echoW " --listenport LISTENPORT           " "To set the HTTP server listener port, default is 80."
-    echoW " --ssllistenport LISTENPORT        " "To set the HTTPS server listener port, default is 443."
+    echoW " --listenport [PORT]               " "To set the HTTP server listener port, default is 80."
+    echoW " --ssllistenport [PORT]            " "To set the HTTPS server listener port, default is 443."
     echoW " --wpuser [WORDPRESSUSER]          " "To set the WordPress admin user for WordPress dashboard login. Default value is wpuser."
     echoW " --wppassword [PASSWORD]           " "To set the WordPress admin user password for WordPress dashboard login."
-    echoW " --wplang [WORDPRESSLANGUAGE]      " "To set the WordPress language. Default value is \"en_US\" for English."
-    echoW " --sitetitle [WORDPRESSTITLE]      " "To set the WordPress site title. Default value is mySite."
+    echoW " --wplang [WP_LANGUAGE]            " "To set the WordPress language. Default value is \"en_US\" for English."
+    echoW " --sitetitle [WP_TITLE]            " "To set the WordPress site title. Default value is mySite."
     echoNW "  -U,    --uninstall              " "${EPACE} To uninstall OpenLiteSpeed and remove installation directory."
     echoNW "  -P,    --purgeall               " "${EPACE} To uninstall OpenLiteSpeed, remove installation directory, and purge all data in MySQL."
     echoNW "  -Q,    --quiet                  " "${EPACE} To use quiet mode, won't prompt to input anything."
@@ -787,30 +788,18 @@ function install_mysql
     else
         debian_install_mysql
     fi
-
     if [ $? != 0 ] ; then
         echoR "An error occured when starting the MariaDB service. "
         echoR "Please fix this error and try again. Aborting installation!"
-        systemctl status mariadb.service
-        echo 'AAAAAAA'
-        journalctl -xe
         exit 1
     fi
 
     echoB "${FPACE} - Set MariaDB root"
     mysql -uroot -e "flush privileges;"
-    echo 'Set sql root '
     mysqladmin -uroot password $ROOTPASSWORD
-
-echo 'change method'
-mysql -u root -e "ALTER USER root@localhost IDENTIFIED VIA mysql_native_password USING PASSWORD('${ROOTPASSWORD}');"
-
-
     if [ $? = 0 ] ; then
-        echo "AAAAAAAAAAAAAAAAAAAAAAAAAACURROOTPASSWORD=$ROOTPASSWORD"
         CURROOTPASSWORD=$ROOTPASSWORD
     else
-        echo 'TEST mysqladmin -uroot -p$ROOTPASSWORD password $ROOTPASSWORD'
         #test it is the current password
         mysqladmin -uroot -p$ROOTPASSWORD password $ROOTPASSWORD
         if [ $? = 0 ] ; then
@@ -1194,8 +1183,6 @@ function check_cur_status
     which mysqladmin  >/dev/null 2>&1
     if [ $? = 0 ] ; then
         MYSQLINSTALLED=1
-        mysqladmin version
-        apt list --installed | grep -i 'mysql\|mariadb'        
     else
         MYSQLINSTALLED=0
     fi
@@ -1429,10 +1416,8 @@ function main_install_wordpress
                 config_vh_wp
                 check_port_usage
                 if [ "$MYSQLINSTALLED" != "1" ] ; then
-                    echo "Install mysql A"
                     install_mysql
                 else
-                    echo "Test mysql A"
                     test_mysql_password
                 fi
                 if [ "$TESTPASSWORDERROR" = "1" ] ; then
@@ -1445,9 +1430,10 @@ function main_install_wordpress
                 create_wordpress_cf
                 if [ "$INSTALLWORDPRESSPLUS" = "1" ] ; then            
                     install_wordpress_core
+                    echo "WordPress administrator username is [$WPUSER], password is [$WPPASSWORD]." >> $SERVER_ROOT/password  
                 fi
                 change_owner ${WORDPRESSPATH}
-                echo "WordPress administrator username is [$WPUSER], password is [$WPPASSWORD]." >> $SERVER_ROOT/password    
+                echo "mysql WordPress DataBase name is [$DATABASENAME], username is [$USERNAME], password is [$USERPASSWORD]." >> $SERVER_ROOT/password    
                 echo "mysql root password is [$ROOTPASSWORD]." >> $SERVER_ROOT/password        
             fi
         fi 
