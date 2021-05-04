@@ -11,17 +11,18 @@ on:
       - master
 
 jobs:
-  build:
+  ols1clk:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: ols1clk installation 
-        run: |
+      - name: env setup
+        run: | 
           sudo apt-get remove --purge mysql* -y
           sudo apt-get autoremove -y
           sudo apt-get autoclean -y
           sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql
-          sudo bash ols1clk.sh -W --quiet   
+      - name: ols1clk installation 
+        run: sudo bash ols1clk.sh -W --quiet   
       - name: Verify    
         run: curl -skL  http://localhost/ | grep -i "WordPress" >/dev/null 2>&1
       - name: ols1clk uninstallation    
@@ -30,4 +31,6 @@ jobs:
         run: |
           if [ -e $SERVER_ROOT/bin/openlitespeed ]; then 
               echo 'Uninstallation failed'; exit 1
-          fi  
+          fi
+      - name: ols1clk pluss installation    
+        run: sudo bash ols1clk.sh -W --lsphp 80 --wordpresspluss action.example.com --wordpresspath /var/www/html --quiet 
