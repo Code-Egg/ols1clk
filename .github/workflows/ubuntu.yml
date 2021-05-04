@@ -21,5 +21,6 @@ jobs:
           sudo apt-get autoremove -y
           sudo apt-get autoclean -y
           sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql
-          sudo find / -iname 'mysql*' -exec rm -rf {} \;
+          sudo ls -l /etc/
+          #sudo find / -iname 'mysql*' -exec rm -rf {} \;
           sudo bash ols1clk.sh -W --pure-mariadb
