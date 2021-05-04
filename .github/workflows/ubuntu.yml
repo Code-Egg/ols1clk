@@ -26,3 +26,8 @@ jobs:
         run: curl -skL  http://localhost/ | grep -i "WordPress" >/dev/null 2>&1
       - name: ols1clk uninstallation    
         run: sudo bash ols1clk.sh -U --quiet 
+      - name: Verify 
+        run: |
+          if [ -e $SERVER_ROOT/bin/openlitespeed ]; then 
+              echo 'Uninstallation failed'; exit 1
+          fi  
