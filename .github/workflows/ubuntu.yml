@@ -21,8 +21,8 @@ jobs:
           sudo apt-get autoremove -y
           sudo apt-get autoclean -y
           sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql
-          sudo bash ols1clk.sh -W --quiet 
-      - name: ols1clk verify     
-          run: curl -skL  http://localhost/ | grep -i "WordPress" >/dev/null 2>&1
+          sudo bash ols1clk.sh -W --quiet   
+        run: |
+          curl -skL  http://localhost/ | grep -i "WordPress" >/dev/null 2>&1
       - name: ols1clk uninstallation    
-        run: sudo bash ols1clk.sh -U --quiet 
+          run: sudo bash ols1clk.sh -U --quiet 
