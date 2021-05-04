@@ -17,6 +17,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: lsws1clk test
         run: |
-          sudo apt remove --purge mysql*; 
-          sudo systemctl daemon-reload
+          sudo apt-get remove --purge mysql* -y
+          sudo apt-get autoremove -y
+          sudo apt-get autoclean -y
+          sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql
+          sudo find / -iname 'mysql*' -exec rm -rf {} \;
           sudo bash ols1clk.sh -W --pure-mariadb
