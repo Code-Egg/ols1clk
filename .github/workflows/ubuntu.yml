@@ -19,4 +19,4 @@ jobs:
         run: |
           sudo apt remove --purge mysql*; 
           sudo systemctl daemon-reload
-          sudo bash -x ols1clk.sh -W
+          sudo bash ols1clk.sh -W --pure-mariadb

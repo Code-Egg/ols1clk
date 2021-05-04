@@ -169,6 +169,24 @@ function check_wget
     fi
 }
 
+function check_curl
+{
+    which curl  >/dev/null 2>&1
+    if [ $? != 0 ] ; then
+        if [ "$OSNAME" = "centos" ] ; then
+            silent ${YUM} -y install curl
+        else
+            ${APT} -y install curl
+        fi
+
+        which curl  >/dev/null 2>&1
+        if [ $? != 0 ] ; then
+            echoR "An error occured during curl installation."
+            ALLERRORS=1
+        fi
+    fi
+}
+
 function update_email
 {
     if [ "$EMAIL" = '' ] ; then
@@ -280,7 +298,7 @@ function check_os
         esac
     elif [ -f /etc/debian_version ] ; then
         OSNAME=debian
-        case $(cat /etc/os-release | grep UBUNTU_CODENAME | cut -d = -f 2) in
+        case $(cat /etc/os-release | grep VERSION_CODENAME | cut -d = -f 2) in
         wheezy)
             OSNAMEVER=DEBIAN7
             OSVER=wheezy
@@ -774,6 +792,8 @@ function install_mysql
         echoR "An error occured when starting the MariaDB service. "
         echoR "Please fix this error and try again. Aborting installation!"
         systemctl status mariadb.service
+        echo 'AAAAAAA'
+        journalctl -xe
         exit 1
     fi
 
@@ -1541,6 +1561,7 @@ function main_init_package
     update_centos_hashlib
     update_system
     check_wget
+    check_curl
 }
 
 function main
