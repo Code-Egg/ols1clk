@@ -35,4 +35,4 @@ jobs:
               echo 'Uninstallation failed'; exit 1
           fi
       - name: ols1clk pluss installation    
-        run: sudo bash ols1clk.sh --lsphp 80 --wordpresspluss action.example.com --wordpresspath /var/www/html --quiet 
+        run: sudo bash ols1clk.sh --lsphp 80 --wordpressplus action.example.com --wordpresspath /var/www/html --quiet 
